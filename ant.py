@@ -1,7 +1,15 @@
 # ant.py
 class Ant:
+    """Clase que representa a la hormiga y su comportamiento"""
+    
     def __init__(self, start_position=(0, 0), maze=None):
-        # Posición inicial de la hormiga en el laberinto
+        """
+        Inicializa una nueva hormiga
+        
+        Args:
+            start_position (tuple): Posición inicial (x, y)
+            maze (Maze): Referencia al laberinto
+        """
         self.position = start_position
         self.maze = maze
         self.health = 100
@@ -57,49 +65,74 @@ class Ant:
         return (x + dx, y + dy)
     
     def move(self, direction):
-        """Mueve la hormiga en la dirección especificada, respetando los límites del laberinto."""
-        x, y = self.position
-        if direction == "UP" and x > 0:
-            self.position = (x - 1, y)
-        elif direction == "DOWN" and x < self.maze.size - 1:
-            self.position = (x + 1, y)
-        elif direction == "LEFT" and y > 0:
-            self.position = (x, y - 1)
-        elif direction == "RIGHT" and y < self.maze.size - 1:
-            self.position = (x, y + 1)
-        else:
-            print("Movimiento no válido.")
-        print(f"La hormiga se movió hacia {direction}. Nueva posición: {self.position}")
-
+        """
+        Mueve la hormiga en la dirección especificada si es posible
+        
+        Args:
+            direction (str): Dirección del movimiento
+            
+        Returns:
+            bool: True si el movimiento fue exitoso
+        """
+        new_position = self.calculate_new_position(direction)
+        
+        if new_position and self.can_move_to(new_position):
+            self.position = new_position
+            self.moves += 1
+            
+            # Reducir nivel de alcohol gradualmente con el movimiento
+            if self.alcohol_level > 0:
+                self.adjust_alcohol_level(-1)
+                
+            return True
+        return False
+    
     def eat_item(self, item_type):
-        """Interacción con ítems encontrados en el laberinto."""
-        if item_type == "SUGAR":
-            self.points += 10
-            print("La hormiga consumió azúcar y ganó puntos. Puntos actuales:", self.points)
-        elif item_type == "WINE":
-            self.alcohol_level += 5
-            print("La hormiga consumió vino. Nivel de alcohol actual:", self.alcohol_level)
-            if self.alcohol_level > 50:
-                self.health -= 10
-                print("La hormiga está borracha y pierde salud. Salud actual:", self.health)
-        elif item_type == "POISON":
-            self.health = 0
-            print("La hormiga consumió veneno y ha muerto.")
-        else:
-            print("Ítem desconocido, no tiene efecto en la hormiga.")
-
+        """
+        Procesa los efectos de consumir un ítem
+        
+        Args:
+            item_type (str): Tipo de ítem consumido
+        """
+        effects = self.item_effects.get(item_type, {})
+        
+        if 'points' in effects:
+            self.points += effects['points']
+        
+        if 'alcohol' in effects:
+            self.adjust_alcohol_level(effects['alcohol'])
+            
+        if 'health' in effects:
+            self.adjust_health(effects['health'])
+    
     def adjust_health(self, amount):
-        """Ajusta el nivel de salud de la hormiga."""
-        self.health += amount
-        self.health = max(0, min(self.health, 100))  # Limita la salud entre 0 y 100
-        print(f"Salud ajustada: {self.health}")
-
+        """Ajusta el nivel de salud de la hormiga"""
+        self.health = max(0, min(100, self.health + amount))
+        
+        # El alcohol excesivo daña la salud
+        if self.alcohol_level > 50:
+            self.health = max(0, self.health - 5)
+    
     def adjust_alcohol_level(self, amount):
-        """Ajusta el nivel de alcohol de la hormiga."""
-        self.alcohol_level += amount
-        self.alcohol_level = max(0, min(self.alcohol_level, 50))  # Limita el nivel de alcohol entre 0 y 50
-        print(f"Nivel de alcohol ajustado: {self.alcohol_level}")
-
+        """Ajusta el nivel de alcohol de la hormiga"""
+        self.alcohol_level = max(0, min(100, self.alcohol_level + amount))
+    
+    def get_status(self):
+        """
+        Obtiene el estado actual de la hormiga
+        
+        Returns:
+            dict: Estado actual de la hormiga
+        """
+        return {
+            'position': self.position,
+            'health': self.health,
+            'alcohol_level': self.alcohol_level,
+            'points': self.points,
+            'moves': self.moves,
+            'is_alive': self.is_alive()
+        }
+    
     def is_alive(self):
         """
         Verifica si la hormiga está viva
@@ -108,27 +141,3 @@ class Ant:
             bool: True si la hormiga está viva
         """
         return self.health > 0
-
-
-if __name__ == "__main__":
-    ant = Ant((0, 0))
-    print("Posición inicial:", ant.position)
-
-    # Mover la hormiga en varias direcciones
-    ant.move("DOWN")
-    ant.move("RIGHT")
-
-    # Consumir diferentes ítems
-    ant.eat_item("SUGAR")
-    ant.eat_item("WINE")
-    ant.eat_item("POISON")
-
-    # Ajustar salud y nivel de alcohol
-    ant.adjust_health(-20)
-    ant.adjust_alcohol_level(10)
-
-    # Comprobar si la hormiga sigue viva
-    if ant.is_alive():
-        print("La hormiga sigue viva.")
-    else:
-        print("La hormiga ha muerto.")
