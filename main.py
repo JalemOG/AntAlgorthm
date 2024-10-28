@@ -1,7 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
 from maze import Maze  # Asegúrate de que la clase Maze esté en el archivo correcto
-
+from items.sugar import Sugar
+from items.wine import Wine
+from items.poison import Poison
+from items.rock import Rock
+from ant import Ant
 
 class AntSimulationApp:
     def __init__(self, root):
@@ -107,6 +111,21 @@ class AntSimulationApp:
 
 # Ejecutar la aplicación
 if __name__ == "__main__":
+    # Crear una hormiga
+    ant = Ant(start_position=(0, 0), maze_size=(5, 5))
+
+    # Crear ítems
+    sugar = Sugar()
+    wine = Wine()
+    poison = Poison()
+    rock = Rock()
+
+    # Consumir los ítems
+    sugar.consume(ant)  # La hormiga gana puntos
+    wine.consume(ant)  # La hormiga incrementa su nivel de alcohol
+    poison.consume(ant)  # La hormiga consume veneno y muere
+    rock.consume(ant)  # La hormiga intenta consumir la roca sin efecto
+
     root = tk.Tk()
     app = AntSimulationApp(root)
     root.mainloop()
