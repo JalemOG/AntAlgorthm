@@ -1,24 +1,25 @@
 class Ant:
-    def __init__(self, start_position=(0, 0)):
+    def __init__(self, start_position=(0, 0), maze=None):
         # Posición inicial de la hormiga en el laberinto
         self.position = start_position
         self.health = 100            # Salud inicial
         self.alcohol_level = 0       # Nivel inicial de alcohol
         self.points = 0              # Puntos iniciales
+        self.maze = maze             # Referencia al objeto Maze para conocer el estado y tamaño
 
     def move(self, direction):
-        """Mueve la hormiga en la dirección especificada."""
+        """Mueve la hormiga en la dirección especificada, respetando los límites del laberinto."""
         x, y = self.position
-        if direction == "UP":
+        if direction == "UP" and x > 0:
             self.position = (x - 1, y)
-        elif direction == "DOWN":
+        elif direction == "DOWN" and x < self.maze.size - 1:
             self.position = (x + 1, y)
-        elif direction == "LEFT":
+        elif direction == "LEFT" and y > 0:
             self.position = (x, y - 1)
-        elif direction == "RIGHT":
+        elif direction == "RIGHT" and y < self.maze.size - 1:
             self.position = (x, y + 1)
         else:
-            raise ValueError("Dirección no válida.")
+            print("Movimiento no válido.")
         print(f"La hormiga se movió hacia {direction}. Nueva posición: {self.position}")
 
     def eat_item(self, item_type):
