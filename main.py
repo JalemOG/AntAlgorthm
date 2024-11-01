@@ -1,15 +1,19 @@
 import tkinter as tk
 from tkinter import messagebox, Toplevel
-from maze import Maze  # Asegúrate de que esta clase esté definida en maze.py
-from ant import Ant    # Asegúrate de que esta clase esté definida en ant.py
+from maze import Maze
+from ant import Ant
 import random
 
 class AntSimulationApp:
-    def __init__(self, root):  # Cambiado a __init__
+    def __init__(self, root):
         self.root = root
         self.root.title("Simulación de Hormiga")
-        self.root.geometry("400x300")
-
+        self.root.geometry("600x850")
+        self.root.resizable(False, False)
+        
+        # Configuración de estilo general
+        self.configure_styles()
+        
         # Variables de configuración
         self.maze = None
         self.ant = None
@@ -20,7 +24,6 @@ class AntSimulationApp:
         self.selected_item.set("SUGAR")
 
         # Cargar las imágenes
-        cell_size = 40
         self.ant_image = tk.PhotoImage(file="images/ant.png").subsample(24)
         self.sugar_image = tk.PhotoImage(file="images/sugar.png").subsample(28)
         self.wine_image = tk.PhotoImage(file="images/wine.png").subsample(10)
@@ -30,28 +33,138 @@ class AntSimulationApp:
         # Crear elementos de la interfaz
         self.create_widgets()
 
+    def configure_styles(self):
+        # Configuración de colores
+        self.bg_color = "#2C3E50"  # Azul oscuro elegante
+        self.fg_color = "#ECF0F1"  # Blanco suave
+        self.accent_color = "#3498DB"  # Azul claro
+        self.button_color = "#2980B9"  # Azul medio
+        self.hover_color = "#1ABC9C"  # Verde azulado
+        self.grid_bg = "#FFFFFF"  # Blanco puro para el grid
+        self.grid_lines = "#BDC3C7"  # Gris claro para las líneas del grid
+
+        # Configuración de la ventana principal
+        self.root.configure(bg=self.bg_color)
+        
+        # Definir estilos de fuente
+        self.title_font = ('Helvetica', 14, 'bold')
+        self.label_font = ('Helvetica', 11)
+        self.button_font = ('Helvetica', 11, 'bold')
+
     def create_widgets(self):
-        tk.Label(self.root, text="Tamaño del laberinto (3-10):").pack(pady=5)
-        self.size_entry = tk.Entry(self.root)
-        self.size_entry.pack(pady=5)
+        # Frame principal para organizar widgets
+        main_frame = tk.Frame(self.root, bg=self.bg_color, padx=20, pady=10)
+        main_frame.pack(fill='both', expand=True)
+
+        # Título
+        title_label = tk.Label(
+            main_frame,
+            text="Simulación de Hormiga",
+            font=('Helvetica', 16, 'bold'),
+            bg=self.bg_color,
+            fg=self.fg_color
+        )
+        title_label.pack(pady=(0, 20))
+
+        # Sección de configuración del laberinto
+        tk.Label(
+            main_frame,
+            text="Tamaño del laberinto (3-10):",
+            font=self.label_font,
+            bg=self.bg_color,
+            fg=self.fg_color
+        ).pack(pady=(5, 2))
+
+        self.size_entry = tk.Entry(
+            main_frame,
+            font=self.label_font,
+            justify='center',
+            bg=self.fg_color
+        )
+        self.size_entry.pack(pady=(0, 10))
 
         self.create_maze_button = tk.Button(
-            self.root, text="Crear Laberinto", command=self.create_maze
+            main_frame,
+            text="Crear Laberinto",
+            command=self.create_maze,
+            font=self.button_font,
+            bg=self.button_color,
+            fg=self.fg_color,
+            activebackground=self.hover_color,
+            activeforeground=self.fg_color,
+            relief='flat',
+            padx=20,
+            pady=5
         )
         self.create_maze_button.pack(pady=10)
 
-        tk.Label(self.root, text="Selecciona el tipo de ítem a colocar:").pack(pady=5)
-        item_menu = tk.OptionMenu(self.root, self.selected_item, "SUGAR", "WINE", "POISON", "ROCK")
+        # Sección de selección de ítems
+        tk.Label(
+            main_frame,
+            text="Selecciona el tipo de ítem:",
+            font=self.label_font,
+            bg=self.bg_color,
+            fg=self.fg_color
+        ).pack(pady=(15, 5))
+
+        item_menu = tk.OptionMenu(
+            main_frame,
+            self.selected_item,
+            "SUGAR",
+            "WINE",
+            "POISON",
+            "ROCK"
+        )
+        item_menu.configure(
+            font=self.label_font,
+            bg=self.button_color,
+            fg=self.fg_color,
+            activebackground=self.hover_color,
+            activeforeground=self.fg_color,
+            relief='flat',
+            highlightthickness=0
+        )
+        item_menu["menu"].configure(
+            font=self.label_font,
+            bg=self.button_color,
+            fg=self.fg_color,
+            activebackground=self.hover_color,
+            activeforeground=self.fg_color
+        )
         item_menu.pack(pady=5)
 
-        tk.Label(self.root, text="Posición inicial de la hormiga (fila, columna):").pack(pady=5)
-        self.start_position_entry = tk.Entry(self.root)
-        self.start_position_entry.pack(pady=5)
+        # Sección de posición inicial
+        tk.Label(
+            main_frame,
+            text="Posición inicial (fila, columna):",
+            font=self.label_font,
+            bg=self.bg_color,
+            fg=self.fg_color
+        ).pack(pady=(15, 5))
 
-        self.start_simulation_button = tk.Button(
-            self.root, text="Iniciar Simulación", command=self.start_simulation
+        self.start_position_entry = tk.Entry(
+            main_frame,
+            font=self.label_font,
+            justify='center',
+            bg=self.fg_color
         )
-        self.start_simulation_button.pack(pady=10)
+        self.start_position_entry.pack(pady=(0, 10))
+
+        # Botón de inicio de simulación
+        self.start_simulation_button = tk.Button(
+            main_frame,
+            text="Iniciar Simulación",
+            command=self.start_simulation,
+            font=self.button_font,
+            bg=self.accent_color,
+            fg=self.fg_color,
+            activebackground=self.hover_color,
+            activeforeground=self.fg_color,
+            relief='flat',
+            padx=20,
+            pady=5
+        )
+        self.start_simulation_button.pack(pady=20)
 
     def create_maze(self):
         size_text = self.size_entry.get()
@@ -71,13 +184,20 @@ class AntSimulationApp:
         if self.grid_created:
             self.grid_frame.destroy()
 
-        self.grid_frame = tk.Frame(self.root)
+        self.grid_frame = tk.Frame(self.root, bg=self.bg_color)
         self.grid_frame.pack(pady=10)
         self.grid_created = True
 
         cell_size = 40
         canvas_size = self.maze.size * cell_size
-        self.maze_canvas = tk.Canvas(self.grid_frame, width=canvas_size, height=canvas_size, bg='white')
+        self.maze_canvas = tk.Canvas(
+            self.grid_frame,
+            width=canvas_size,
+            height=canvas_size,
+            bg=self.grid_bg,
+            highlightthickness=2,
+            highlightbackground=self.accent_color
+        )
         self.maze_canvas.pack()
 
         self.cells = []
@@ -88,8 +208,12 @@ class AntSimulationApp:
                 y1 = i * cell_size
                 x2 = x1 + cell_size
                 y2 = y1 + cell_size
-                
-                cell = self.maze_canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="black", width=1)
+                cell = self.maze_canvas.create_rectangle(
+                    x1, y1, x2, y2,
+                    fill=self.grid_bg,
+                    outline=self.grid_lines,
+                    width=1
+                )
                 row.append(cell)
                 self.maze_canvas.tag_bind(cell, '<Button-1>', lambda e, x=i, y=j: self.add_item_to_maze(x, y))
             self.cells.append(row)
@@ -152,14 +276,33 @@ class AntSimulationApp:
             return
 
         self.simulation_window = Toplevel(self.root)
-        self.simulation_window.title("Ventana de Simulación")
+        self.simulation_window.title("Simulación en Progreso")
         self.simulation_active = True
+
+        # Configurar estilo de la ventana de simulación
+        self.simulation_window.configure(bg=self.bg_color)
 
         cell_size = 40
         canvas_size = self.maze.size * cell_size
-        self.simulation_window.geometry(f"{canvas_size}x{canvas_size}")
+        self.simulation_window.geometry(f"{canvas_size + 40}x{canvas_size + 40}")  # Añadir padding
 
-        self.simulation_canvas = tk.Canvas(self.simulation_window, width=canvas_size, height=canvas_size, bg='white')
+        # Frame para el canvas con padding
+        simulation_frame = tk.Frame(
+            self.simulation_window,
+            bg=self.bg_color,
+            padx=20,
+            pady=20
+        )
+        simulation_frame.pack(fill='both', expand=True)
+
+        self.simulation_canvas = tk.Canvas(
+            simulation_frame,
+            width=canvas_size,
+            height=canvas_size,
+            bg=self.grid_bg,
+            highlightthickness=2,
+            highlightbackground=self.accent_color
+        )
         self.simulation_canvas.pack()
 
         self.simulation_cells = []
@@ -170,7 +313,12 @@ class AntSimulationApp:
                 y1 = i * cell_size
                 x2 = x1 + cell_size
                 y2 = y1 + cell_size
-                cell = self.simulation_canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="black", width=1)
+                cell = self.simulation_canvas.create_rectangle(
+                    x1, y1, x2, y2,
+                    fill=self.grid_bg,
+                    outline=self.grid_lines,
+                    width=1
+                )
                 row.append(cell)
             self.simulation_cells.append(row)
 
@@ -180,20 +328,16 @@ class AntSimulationApp:
     def update_simulation_grid(self):
         cell_size = 40
         
-        # Borrar solo la hormiga anterior
         self.simulation_canvas.delete("ant")
         
-        # Actualizar los ítems solo si han cambiado
         for i in range(self.maze.size):
             for j in range(self.maze.size):
                 item = self.maze.matrix[i][j]
                 x = j * cell_size + cell_size // 2
                 y = i * cell_size + cell_size // 2
                 
-                # Borrar el ítem anterior en esta posición
                 self.simulation_canvas.delete(f"item_{i}_{j}")
                 
-                # Dibujar el nuevo ítem si existe
                 if item == "S":
                     self.simulation_canvas.create_image(x, y, image=self.sugar_image, tags=f"item_{i}_{j}")
                 elif item == "W":
@@ -203,7 +347,6 @@ class AntSimulationApp:
                 elif item == "R":
                     self.simulation_canvas.create_image(x, y, image=self.rock_image, tags=f"item_{i}_{j}")
 
-        # Dibujar la hormiga en su nueva posición
         ant_x, ant_y = self.ant.position
         x = ant_y * cell_size + cell_size // 2
         y = ant_x * cell_size + cell_size // 2
@@ -221,10 +364,13 @@ class AntSimulationApp:
                 self.maze.matrix[ant_x][ant_y] = " "
 
             self.update_simulation_grid()
-
             self.simulation_window.after(500, self.run_simulation_step)
         else:
-            messagebox.showinfo("Simulación", "La hormiga ha muerto. Fin de la simulación.")
+            messagebox.showinfo(
+                "Fin de la Simulación",
+                "La hormiga ha muerto.\nSimulación finalizada",
+                icon="info"
+            )
 
 if __name__ == "__main__":
     root = tk.Tk()
