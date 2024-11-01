@@ -1,210 +1,230 @@
-# main.py
 import tkinter as tk
-from tkinter import ttk, messagebox
-from maze import Maze
-from ant import Ant
+from tkinter import messagebox, Toplevel
+from maze import Maze  # Asegúrate de que esta clase esté definida en maze.py
+from ant import Ant    # Asegúrate de que esta clase esté definida en ant.py
 import random
 
 class AntSimulationApp:
-    def __init__(self, root):
+    def __init__(self, root):  # Cambiado a __init__
         self.root = root
         self.root.title("Simulación de Hormiga")
-        
-        # Configuración inicial de la ventana
-        self.window_width = 1024
-        self.window_height = 768
-        self.root.geometry(f"{self.window_width}x{self.window_height}")
-        
-        # Variables de control
+        self.root.geometry("400x300")
+
+        # Variables de configuración
         self.maze = None
         self.ant = None
-        self.simulation_running = False
-        self.cell_size = 40
-        
-        # Variables de la interfaz
-        self.selected_item = tk.StringVar(value="SUGAR")
-        self.maze_size = tk.IntVar(value=5)
-        self.simulation_speed = tk.IntVar(value=500)
-        
-        # Inicializar interfaz
-        self.setup_ui()
-        self.load_images()
-        
-    def setup_ui(self):
-        """Configura la interfaz de usuario"""
-        # Frame principal con dos paneles
-        self.main_frame = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
-        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # Panel de control (izquierda)
-        self.control_panel = self.create_control_panel()
-        
-        # Panel de juego (derecha)
-        self.game_panel = self.create_game_panel()
-        
-        # Añadir paneles al PanedWindow
-        self.main_frame.add(self.control_panel, weight=1)
-        self.main_frame.add(self.game_panel, weight=3)
-    
-    def create_control_panel(self):
-        """Crea el panel de control"""
-        control_frame = ttk.Frame(self.main_frame)
-        
-        # Configuración del laberinto
-        maze_config = ttk.LabelFrame(control_frame, text="Configuración del Laberinto")
-        maze_config.pack(fill=tk.X, padx=5, pady=5)
-        
-        ttk.Label(maze_config, text="Tamaño:").pack()
-        size_scale = ttk.Scale(maze_config, from_=3, to=10, 
-                             variable=self.maze_size, orient=tk.HORIZONTAL)
-        size_scale.pack(fill=tk.X, padx=5)
-        
-        # Selector de items
-        items_frame = ttk.LabelFrame(control_frame, text="Tipos de Ítems")
-        items_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        for item in ["SUGAR", "WINE", "POISON", "ROCK"]:
-            ttk.Radiobutton(items_frame, text=item, 
-                           variable=self.selected_item, value=item).pack(anchor=tk.W)
-        
-        # Control de simulación
-        sim_control = ttk.LabelFrame(control_frame, text="Control de Simulación")
-        sim_control.pack(fill=tk.X, padx=5, pady=5)
-        
-        ttk.Label(sim_control, text="Velocidad:").pack()
-        speed_scale = ttk.Scale(sim_control, from_=100, to=1000, 
-                              variable=self.simulation_speed, orient=tk.HORIZONTAL)
-        speed_scale.pack(fill=tk.X, padx=5)
-        
-        # Estado de la hormiga
-        self.status_frame = ttk.LabelFrame(control_frame, text="Estado de la Hormiga")
-        self.status_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        self.status_labels = {}
-        for stat in ['health', 'alcohol_level', 'points', 'moves']:
-            self.status_labels[stat] = ttk.Label(self.status_frame, text=f"{stat}: 0")
-            self.status_labels[stat].pack(anchor=tk.W)
-        
-        # Botones de control
-        buttons_frame = ttk.Frame(control_frame)
-        buttons_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        ttk.Button(buttons_frame, text="Nuevo Laberinto", 
-                  command=self.create_maze).pack(fill=tk.X, pady=2)
-        self.start_button = ttk.Button(buttons_frame, text="Iniciar Simulación", 
-                                     command=self.toggle_simulation)
-        self.start_button.pack(fill=tk.X, pady=2)
-        ttk.Button(buttons_frame, text="Reiniciar", 
-                  command=self.reset_simulation).pack(fill=tk.X, pady=2)
-        
-        return control_frame
-    
-    def create_game_panel(self):
-        """Crea el panel de juego"""
-        game_frame = ttk.Frame(self.main_frame)
-        
-        # Canvas para el laberinto
-        self.canvas = tk.Canvas(game_frame, bg='white')
-        self.canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # Configurar evento de redimensionamiento
-        self.canvas.bind('<Configure>', self.on_canvas_resize)
-        
-        return game_frame
-    
-    def load_images(self):
-        """Carga las imágenes del juego"""
-        # Similar al código anterior de carga de imágenes
-        # [Se mantiene igual que en la versión anterior]
-        pass
-    
-    def create_maze(self):
-        """Crea un nuevo laberinto"""
-        size = self.maze_size.get()
-        self.maze = Maze(size=size)
-        self.ant = Ant(start_position=(0, 0), maze=self.maze)
-        self.draw_maze()
-        self.simulation_running = False
-        self.start_button.config(text="Iniciar Simulación")
-        self.update_status_display()
-    
-    def draw_maze(self):
-        """Dibuja el laberinto y la hormiga en el canvas con celdas de tamaño constante."""
-        self.canvas.delete("all")  # Limpia el canvas
+        self.simulation_active = False
+        self.ant_start_position = (0, 0)
+        self.grid_created = False
+        self.selected_item = tk.StringVar()
+        self.selected_item.set("SUGAR")
 
-        if not self.maze:
-            return
-
-        # Tamaño constante de las celdas (por ejemplo, 40x40 píxeles)
+        # Cargar las imágenes
         cell_size = 40
+        self.ant_image = tk.PhotoImage(file="images/ant.png").subsample(24)
+        self.sugar_image = tk.PhotoImage(file="images/sugar.png").subsample(28)
+        self.wine_image = tk.PhotoImage(file="images/wine.png").subsample(10)
+        self.poison_image = tk.PhotoImage(file="images/poison.png").subsample(10)
+        self.rock_image = tk.PhotoImage(file="images/rock.png").subsample(12)
 
-        for row in range(self.maze.size):
-            for col in range(self.maze.size):
-                x1 = col * cell_size
-                y1 = row * cell_size
+        # Crear elementos de la interfaz
+        self.create_widgets()
+
+    def create_widgets(self):
+        tk.Label(self.root, text="Tamaño del laberinto (3-10):").pack(pady=5)
+        self.size_entry = tk.Entry(self.root)
+        self.size_entry.pack(pady=5)
+
+        self.create_maze_button = tk.Button(
+            self.root, text="Crear Laberinto", command=self.create_maze
+        )
+        self.create_maze_button.pack(pady=10)
+
+        tk.Label(self.root, text="Selecciona el tipo de ítem a colocar:").pack(pady=5)
+        item_menu = tk.OptionMenu(self.root, self.selected_item, "SUGAR", "WINE", "POISON", "ROCK")
+        item_menu.pack(pady=5)
+
+        tk.Label(self.root, text="Posición inicial de la hormiga (fila, columna):").pack(pady=5)
+        self.start_position_entry = tk.Entry(self.root)
+        self.start_position_entry.pack(pady=5)
+
+        self.start_simulation_button = tk.Button(
+            self.root, text="Iniciar Simulación", command=self.start_simulation
+        )
+        self.start_simulation_button.pack(pady=10)
+
+    def create_maze(self):
+        size_text = self.size_entry.get()
+        if size_text.isdigit():
+            size = int(size_text)
+            if 3 <= size <= 10:
+                self.maze = Maze(size=size)
+                self.maze.initialize_grid()
+                self.display_maze_grid()
+                messagebox.showinfo("Éxito", f"Laberinto de {size}x{size} creado.")
+            else:
+                messagebox.showerror("Error", "El tamaño debe estar entre 3 y 10.")
+        else:
+            messagebox.showerror("Error", "Introduce un tamaño válido entre 3 y 10.")
+
+    def display_maze_grid(self):
+        if self.grid_created:
+            self.grid_frame.destroy()
+
+        self.grid_frame = tk.Frame(self.root)
+        self.grid_frame.pack(pady=10)
+        self.grid_created = True
+
+        cell_size = 40
+        canvas_size = self.maze.size * cell_size
+        self.maze_canvas = tk.Canvas(self.grid_frame, width=canvas_size, height=canvas_size, bg='white')
+        self.maze_canvas.pack()
+
+        self.cells = []
+        for i in range(self.maze.size):
+            row = []
+            for j in range(self.maze.size):
+                x1 = j * cell_size
+                y1 = i * cell_size
                 x2 = x1 + cell_size
                 y2 = y1 + cell_size
                 
-                # Verifica si la posición está vacía
-                fill_color = "white" if self.maze.is_position_empty((row, col)) else "black"
-                
-                # Dibuja el rectángulo de la celda
-                self.canvas.create_rectangle(x1, y1, x2, y2, fill=fill_color, outline="gray")
+                cell = self.maze_canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="black", width=1)
+                row.append(cell)
+                self.maze_canvas.tag_bind(cell, '<Button-1>', lambda e, x=i, y=j: self.add_item_to_maze(x, y))
+            self.cells.append(row)
 
-                # Dibuja el símbolo del ítem si existe en esa posición
-                item_type = self.maze.get_item_at((row, col))
-                if item_type:
-                    item_symbol = self.maze.item_symbols[item_type]
-                    self.canvas.create_text(x1 + cell_size // 2, y1 + cell_size // 2, 
-                                            text=item_symbol, font=("Arial", 16))
+    def add_item_to_maze(self, x, y):
+        if self.maze is None:
+            messagebox.showerror("Error", "Primero crea un laberinto.")
+            return
 
-        # Dibuja la hormiga
-        if self.ant:
-            ant_x, ant_y = self.ant.position
-            x1 = ant_x * cell_size
-            y1 = ant_y * cell_size
-            x2 = x1 + cell_size
-            y2 = y1 + cell_size
-            self.canvas.create_oval(x1, y1, x2, y2, fill="red")
+        item_type = self.selected_item.get()
 
-
-
-    def update_status_display(self):
-        """Actualiza el estado de la hormiga en el panel de estado"""
-        if self.ant:
-            self.status_labels['health'].config(text=f"Health: {self.ant.health}")
-            self.status_labels['alcohol_level'].config(text=f"Alcohol Level: {self.ant.alcohol_level}")
-            self.status_labels['points'].config(text=f"Points: {self.ant.points}")
-            self.status_labels['moves'].config(text=f"Moves: {self.ant.moves}")
-
-    def toggle_simulation(self):
-        """Inicia o pausa la simulación"""
-        if self.simulation_running:
-            self.simulation_running = False
-            self.start_button.config(text="Iniciar Simulación")
+        if self.maze.matrix[x][y] == " ":
+            self.maze.add_item(item_type, (x, y))
+            self.update_maze_grid()
         else:
-            self.simulation_running = True
-            self.start_button.config(text="Pausar Simulación")
-            self.run_simulation_step()
+            messagebox.showerror("Error", "La celda ya tiene un ítem.")
+
+    def update_maze_grid(self):
+        cell_size = 40
+        
+        for i in range(self.maze.size):
+            for j in range(self.maze.size):
+                item = self.maze.matrix[i][j]
+                
+                x = j * cell_size + cell_size // 2
+                y = i * cell_size + cell_size // 2
+                
+                self.maze_canvas.delete(f"image_{i}_{j}")
+                
+                if item == "S":
+                    self.maze_canvas.create_image(x, y, image=self.sugar_image, tags=(f"image_{i}_{j}"))
+                elif item == "W":
+                    self.maze_canvas.create_image(x, y, image=self.wine_image, tags=(f"image_{i}_{j}"))
+                elif item == "P":
+                    self.maze_canvas.create_image(x, y, image=self.poison_image, tags=(f"image_{i}_{j}"))
+                elif item == "R":
+                    self.maze_canvas.create_image(x, y, image=self.rock_image, tags=(f"image_{i}_{j}"))
+
+    def start_simulation(self):
+        if not self.maze:
+            messagebox.showerror("Error", "Primero crea el laberinto antes de iniciar la simulación.")
+            return
+
+        if self.simulation_active:
+            messagebox.showwarning("Advertencia", "La simulación ya está en ejecución.")
+            return
+
+        start_position_text = self.start_position_entry.get()
+        start_position_parts = start_position_text.split(",")
+        if len(start_position_parts) == 2 and all(part.strip().isdigit() for part in start_position_parts):
+            start_x, start_y = int(start_position_parts[0].strip()), int(start_position_parts[1].strip())
+            if 0 <= start_x < self.maze.size and 0 <= start_y < self.maze.size:
+                self.ant_start_position = (start_x, start_y)
+                self.ant = Ant(start_position=self.ant_start_position, maze=self.maze)
+            else:
+                messagebox.showerror("Error", "Posición fuera del rango del laberinto.")
+                return
+        else:
+            messagebox.showerror("Error", "Posición inicial no válida.")
+            return
+
+        self.simulation_window = Toplevel(self.root)
+        self.simulation_window.title("Ventana de Simulación")
+        self.simulation_active = True
+
+        cell_size = 40
+        canvas_size = self.maze.size * cell_size
+        self.simulation_window.geometry(f"{canvas_size}x{canvas_size}")
+
+        self.simulation_canvas = tk.Canvas(self.simulation_window, width=canvas_size, height=canvas_size, bg='white')
+        self.simulation_canvas.pack()
+
+        self.simulation_cells = []
+        for i in range(self.maze.size):
+            row = []
+            for j in range(self.maze.size):
+                x1 = j * cell_size
+                y1 = i * cell_size
+                x2 = x1 + cell_size
+                y2 = y1 + cell_size
+                cell = self.simulation_canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="black", width=1)
+                row.append(cell)
+            self.simulation_cells.append(row)
+
+        self.update_simulation_grid()
+        self.run_simulation_step()
+
+    def update_simulation_grid(self):
+        cell_size = 40
+        
+        # Borrar solo la hormiga anterior
+        self.simulation_canvas.delete("ant")
+        
+        # Actualizar los ítems solo si han cambiado
+        for i in range(self.maze.size):
+            for j in range(self.maze.size):
+                item = self.maze.matrix[i][j]
+                x = j * cell_size + cell_size // 2
+                y = i * cell_size + cell_size // 2
+                
+                # Borrar el ítem anterior en esta posición
+                self.simulation_canvas.delete(f"item_{i}_{j}")
+                
+                # Dibujar el nuevo ítem si existe
+                if item == "S":
+                    self.simulation_canvas.create_image(x, y, image=self.sugar_image, tags=f"item_{i}_{j}")
+                elif item == "W":
+                    self.simulation_canvas.create_image(x, y, image=self.wine_image, tags=f"item_{i}_{j}")
+                elif item == "P":
+                    self.simulation_canvas.create_image(x, y, image=self.poison_image, tags=f"item_{i}_{j}")
+                elif item == "R":
+                    self.simulation_canvas.create_image(x, y, image=self.rock_image, tags=f"item_{i}_{j}")
+
+        # Dibujar la hormiga en su nueva posición
+        ant_x, ant_y = self.ant.position
+        x = ant_y * cell_size + cell_size // 2
+        y = ant_x * cell_size + cell_size // 2
+        self.simulation_canvas.create_image(x, y, image=self.ant_image, tags="ant")
 
     def run_simulation_step(self):
-        """Ejecuta un paso de la simulación"""
-        if self.simulation_running and self.ant and self.maze:
-            self.ant.move()
-            self.update_status_display()
-            self.draw_maze()
-            self.root.after(self.simulation_speed.get(), self.run_simulation_step)
+        if self.ant.is_alive():
+            direction = random.choice(["UP", "DOWN", "LEFT", "RIGHT"])
+            self.ant.move(direction)
 
-    def reset_simulation(self):
-        """Reinicia la simulación"""
-        if self.ant:
-            self.ant.reset()
-            self.update_status_display()
-            self.draw_maze()
+            ant_x, ant_y = self.ant.position
+            item = self.maze.matrix[ant_x][ant_y]
+            if item != " ":
+                self.ant.eat_item(item)
+                self.maze.matrix[ant_x][ant_y] = " "
 
-    def on_canvas_resize(self, event):
-        """Redibuja el laberinto cuando se redimensiona el canvas"""
-        self.draw_maze()
+            self.update_simulation_grid()
+
+            self.simulation_window.after(500, self.run_simulation_step)
+        else:
+            messagebox.showinfo("Simulación", "La hormiga ha muerto. Fin de la simulación.")
 
 if __name__ == "__main__":
     root = tk.Tk()
