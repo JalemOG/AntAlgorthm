@@ -1,10 +1,15 @@
+from items.sugar import Sugar
+from items.wine import Wine
+from items.poison import Poison
+from items.rock import Rock
+
 class Ant:
     def __init__(self, start_position, maze):
         self.position = start_position
         self.maze = maze
         self.health = 100
-        self.sugar_collected = 0
-        self.wine_collected = 0
+        self.points = 0
+        self.alcohol_level = 0
 
     def is_alive(self):
         return self.health > 0
@@ -30,12 +35,70 @@ class Ant:
             return True
         return False
 
-    def eat_item(self, item):
-        if item == "S":
-            self.sugar_collected += 1
+    def interact_with_item(self, item):
+        """
+        Maneja la interacción con ítems, ya sean objetos o strings
+        """
+        if not self.is_alive():
+            print("La hormiga está muerta y no puede interactuar con ítems.")
+            return
+
+        # Si el ítem es un string, convertirlo al objeto correspondiente
+        if isinstance(item, str):
+            if item == 'S':
+                item = Sugar()
+            elif item == 'W':
+                item = Wine()
+            elif item == 'P':
+                item = Poison()
+            elif item == 'R':
+                item = Rock()
+
+        # Procesar el ítem según su tipo
+        if isinstance(item, Sugar):
             self.health += 10
-        elif item == "W":
-            self.wine_collected += 1
-            self.health += 5
-        elif item == "P":
-            self.health -= 50
+            self.points += 10
+            print(f"Hormiga consumió azúcar. Salud: {self.health}, Puntos: {self.points}")
+            
+        elif isinstance(item, Wine):
+            self.alcohol_level += 5
+            self.health -= 10
+            print(f"Hormiga consumió vino. Salud: {self.health}, Nivel de alcohol: {self.alcohol_level}")
+            
+            if self.alcohol_level > 50:
+                self.health -= 10
+                print("¡La hormiga está muy borracha y pierde salud extra!")
+            
+        elif isinstance(item, Poison):
+            self.health = 0
+            print("¡La hormiga ha consumido veneno y ha muerto!")
+            
+        elif isinstance(item, Rock):
+            print("La hormiga no puede consumir rocas.")
+
+        # Actualizar estado de salud
+        self.update_health(0)  # Solo para verificar límites
+
+    def update_health(self, change):
+        """
+        Actualiza y verifica los límites de salud
+        """
+        self.health += change
+        if self.health <= 0:
+            self.health = 0
+            print("La hormiga ha muerto.")
+        elif self.health > 100:
+            self.health = 100
+            print("La hormiga ha alcanzado su máxima salud.")
+
+    def get_status(self):
+        """
+        Retorna el estado actual de la hormiga
+        """
+        return {
+            "position": self.position,
+            "health": self.health,
+            "points": self.points,
+            "alcohol_level": self.alcohol_level,
+            "is_alive": self.is_alive()
+        }
