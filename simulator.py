@@ -23,6 +23,11 @@ class AntSimulationApp:
         self.grid_created = False
         self.selected_item = tk.StringVar()
         self.selected_item.set("SUGAR")
+        self.simulation_paused = False
+        self.simulation_speed = 1
+        self.base_speed = 500 
+        self.time_multiplier = 1
+        self.last_update_time = 0
 
         # Cargar las imágenes
         self.ant_image = tk.PhotoImage(file="images/ant.png").subsample(24)
@@ -35,7 +40,7 @@ class AntSimulationApp:
         self.create_widgets()
 
     def create_stats_panel(self, simulation_frame):
-        """Crea el panel de estadísticas"""
+        """Crea el panel de estadísticas y controles"""
         stats_frame = tk.Frame(simulation_frame, bg=self.bg_color)
         stats_frame.pack(side='right', padx=10, pady=10, fill='y')
 
@@ -57,6 +62,65 @@ class AntSimulationApp:
         tk.Label(stats_frame, textvariable=self.alcohol_var, **label_style).pack(anchor='w')
         tk.Label(stats_frame, textvariable=self.time_var, **label_style).pack(anchor='w')
 
+        # Separador
+        tk.Frame(stats_frame, height=2, bg=self.accent_color).pack(fill='x', pady=10)
+
+        # Control de pausa
+        self.pause_button = tk.Button(
+            stats_frame,
+            text="Pausar",
+            command=self.toggle_pause,
+            font=self.button_font,
+            bg=self.button_color,
+            fg=self.fg_color,
+            activebackground=self.hover_color,
+            activeforeground=self.fg_color,
+            relief='flat',
+            width=15
+        )
+        self.pause_button.pack(pady=10)
+
+        # Control de velocidad
+        speed_frame = tk.Frame(stats_frame, bg=self.bg_color)
+        speed_frame.pack(pady=10)
+
+        tk.Label(
+            speed_frame,
+            text="Velocidad:",
+            bg=self.bg_color,
+            fg=self.fg_color,
+            font=self.label_font
+        ).pack()
+
+        self.speed_scale = tk.Scale(
+            speed_frame,
+            from_=1,
+            to=20,
+            orient='horizontal',
+            command=self.update_speed,
+            bg=self.bg_color,
+            fg=self.fg_color,
+            highlightthickness=0,
+            troughcolor=self.button_color,
+            activebackground=self.hover_color
+        )
+        self.speed_scale.set(1)
+        self.speed_scale.pack()
+
+    def toggle_pause(self):
+        """Alterna entre pausa y reproducción"""
+        self.simulation_paused = not self.simulation_paused
+        self.pause_button.config(text="Reanudar" if self.simulation_paused else "Pausar")
+        
+        if not self.simulation_paused:
+            self.last_update_time = time.time()
+            self.run_simulation_step()
+
+    def update_speed(self, value):
+        """Actualiza la velocidad de simulación"""
+        self.simulation_speed = int(value)
+        self.time_multiplier = self.simulation_speed
+
     def update_stats(self):
         """Actualiza las estadísticas en tiempo real"""
         if hasattr(self, 'ant') and self.ant.is_alive():
@@ -66,11 +130,17 @@ class AntSimulationApp:
             self.alcohol_var.set(f"Alcohol: {status['alcohol_level']}")
 
     def update_timer(self):
-        """Actualiza el cronómetro"""
-        if hasattr(self, 'ant') and self.ant.is_alive():
-            elapsed_time = int(time.time() - self.start_time)
-            minutes = elapsed_time // 60
-            seconds = elapsed_time % 60
+        """Actualiza el cronómetro considerando la velocidad"""
+        if hasattr(self, 'ant') and self.ant.is_alive() and not self.simulation_paused:
+            current_time = time.time()
+            elapsed_real_time = current_time - self.last_update_time
+            self.last_update_time = current_time
+            
+            # Ajustar el tiempo según la velocidad
+            self.elapsed_simulation_time += elapsed_real_time * self.time_multiplier
+            
+            minutes = int(self.elapsed_simulation_time) // 60
+            seconds = int(self.elapsed_simulation_time) % 60
             self.time_var.set(f"Tiempo: {minutes:02d}:{seconds:02d}")
 
     def configure_styles(self):
@@ -357,6 +427,8 @@ class AntSimulationApp:
 
         # Inicializar el tiempo de inicio
         self.start_time = time.time()
+        self.last_update_time = self.start_time
+        self.elapsed_simulation_time = 0
 
         # Crear la cuadrícula
         self.simulation_cells = []
@@ -407,7 +479,7 @@ class AntSimulationApp:
         self.simulation_canvas.create_image(x, y, image=self.ant_image, tags="ant")
 
     def run_simulation_step(self):
-        if self.ant.is_alive():
+        if self.ant.is_alive() and not self.simulation_paused:
             direction = random.choice(["UP", "DOWN", "LEFT", "RIGHT"])
             self.ant.move(direction)
 
@@ -418,9 +490,14 @@ class AntSimulationApp:
                 self.maze.matrix[ant_x][ant_y] = " "
 
             self.update_simulation_grid()
-            self.update_stats()  # Actualizar estadísticas
-            self.update_timer()  # Actualizar cronómetro
-            self.simulation_window.after(500, self.run_simulation_step)
+            self.update_stats()
+            self.update_timer()
+            
+            # Calcular el delay ajustado según la velocidad
+            adjusted_delay = int(self.base_speed / self.simulation_speed)
+            self.simulation_window.after(adjusted_delay, self.run_simulation_step)
+        elif self.ant.is_alive() and self.simulation_paused:
+            self.simulation_window.after(100, self.run_simulation_step)
         else:
             messagebox.showinfo(
                 "Fin de la Simulación",
