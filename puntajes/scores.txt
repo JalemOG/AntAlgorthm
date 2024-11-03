@@ -1,42 +1,329 @@
-Simulación #1
-Fecha y hora: 2024-11-03 11:11:28
-Duración: 12.95 segundos
-Puntos finales: 130
-Salud final: 80.0
-Nivel de alcohol final: 15.0
+Simulación #30
+Fecha y hora: 2024-11-03 17:29:25
+Duración: 507.47 segundos
+Puntos finales: 196
+Salud final: 100
+Nivel de alcohol final: 11
 
-Simulación #2
-Fecha y hora: 2024-11-03 11:11:47
-Duración: 31.60 segundos
-Puntos finales: 130
-Salud final: 90.0
-Nivel de alcohol final: 15.0
-
-Simulación #4
-Fecha y hora: 2024-11-03 11:12:03
-Duración: 47.64 segundos
-Puntos finales: 130
-Salud final: 70
-Nivel de alcohol final: 15
+Simulación #17
+Fecha y hora: 2024-11-03 17:24:43
+Duración: 226.32 segundos
+Puntos finales: 167
+Salud final: 100
+Nivel de alcohol final: 13
 
 Simulación #3
-Fecha y hora: 2024-11-03 11:11:49
-Duración: 34.37 segundos
-Puntos finales: 110
-Salud final: 70.0
-Nivel de alcohol final: 15.0
+Fecha y hora: 2024-11-03 17:21:44
+Duración: 46.85 segundos
+Puntos finales: 164
+Salud final: 100
+Nivel de alcohol final: 0
+
+Simulación #28
+Fecha y hora: 2024-11-03 17:28:09
+Duración: 432.32 segundos
+Puntos finales: 156
+Salud final: 100
+Nivel de alcohol final: 24
+
+Simulación #29
+Fecha y hora: 2024-11-03 17:29:25
+Duración: 507.43 segundos
+Puntos finales: 146
+Salud final: 100
+Nivel de alcohol final: 11
+
+Simulación #14
+Fecha y hora: 2024-11-03 17:23:45
+Duración: 168.23 segundos
+Puntos finales: 144
+Salud final: 100
+Nivel de alcohol final: 13
+
+Simulación #39
+Fecha y hora: 2024-11-03 17:32:30
+Duración: 692.43 segundos
+Puntos finales: 144
+Salud final: 96
+Nivel de alcohol final: 22
+
+Simulación #35
+Fecha y hora: 2024-11-03 17:30:08
+Duración: 551.36 segundos
+Puntos finales: 143
+Salud final: 100
+Nivel de alcohol final: 22
+
+Simulación #19
+Fecha y hora: 2024-11-03 17:24:57
+Duración: 240.07 segundos
+Puntos finales: 139
+Salud final: 100
+Nivel de alcohol final: 10
 
 Simulación #1
-Fecha y hora: 2024-11-03 11:05:24
-Duración: 3.55 segundos
-Puntos finales: 50
-Salud final: 100.0
-Nivel de alcohol final: 0.0
+Fecha y hora: 2024-11-03 17:21:19
+Duración: 21.48 segundos
+Puntos finales: 138
+Salud final: 100
+Nivel de alcohol final: 10
+
+Simulación #41
+Fecha y hora: 2024-11-03 17:32:38
+Duración: 700.41 segundos
+Puntos finales: 136
+Salud final: 95
+Nivel de alcohol final: 16
+
+Simulación #34
+Fecha y hora: 2024-11-03 17:29:47
+Duración: 530.31 segundos
+Puntos finales: 132
+Salud final: 100
+Nivel de alcohol final: 20
+
+Simulación #27
+Fecha y hora: 2024-11-03 17:25:47
+Duración: 290.09 segundos
+Puntos finales: 130
+Salud final: 91
+Nivel de alcohol final: 13
+
+Simulación #37
+Fecha y hora: 2024-11-03 17:30:14
+Duración: 556.51 segundos
+Puntos finales: 129
+Salud final: 100
+Nivel de alcohol final: 6
+
+Simulación #7
+Fecha y hora: 2024-11-03 17:22:02
+Duración: 65.1 segundos
+Puntos finales: 128
+Salud final: 94
+Nivel de alcohol final: 22
+
+Simulación #22
+Fecha y hora: 2024-11-03 17:25:08
+Duración: 250.59 segundos
+Puntos finales: 127
+Salud final: 100
+Nivel de alcohol final: 8
+
+Simulación #43
+Fecha y hora: 2024-11-03 17:32:47
+Duración: 709.67 segundos
+Puntos finales: 126
+Salud final: 100
+Nivel de alcohol final: 6
+
+Simulación #23
+Fecha y hora: 2024-11-03 17:25:12
+Duración: 254.48 segundos
+Puntos finales: 122
+Salud final: 100
+Nivel de alcohol final: 2
+
+Simulación #45
+Fecha y hora: 2024-11-03 17:32:51
+Duración: 713.78 segundos
+Puntos finales: 121
+Salud final: 100
+Nivel de alcohol final: 2
+
+Simulación #12
+Fecha y hora: 2024-11-03 17:22:34
+Duración: 96.88 segundos
+Puntos finales: 112
+Salud final: 94
+Nivel de alcohol final: 13
+
+Simulación #13
+Fecha y hora: 2024-11-03 17:23:32
+Duración: 154.51 segundos
+Puntos finales: 102
+Salud final: 88
+Nivel de alcohol final: 22
+
+Simulación #21
+Fecha y hora: 2024-11-03 17:25:04
+Duración: 246.43 segundos
+Puntos finales: 99
+Salud final: 94
+Nivel de alcohol final: 14
+
+Simulación #26
+Fecha y hora: 2024-11-03 17:25:22
+Duración: 265.16 segundos
+Puntos finales: 99
+Salud final: 100
+Nivel de alcohol final: 10
 
 Simulación #2
-Fecha y hora: 2024-11-03 11:05:31
-Duración: 10.58 segundos
-Puntos finales: 50
-Salud final: 100.0
-Nivel de alcohol final: 0.0
+Fecha y hora: 2024-11-03 17:21:35
+Duración: 37.5 segundos
+Puntos finales: 97
+Salud final: 97
+Nivel de alcohol final: 23
+
+Simulación #36
+Fecha y hora: 2024-11-03 17:30:11
+Duración: 553.99 segundos
+Puntos finales: 96
+Salud final: 100
+Nivel de alcohol final: 1
+
+Simulación #38
+Fecha y hora: 2024-11-03 17:32:30
+Duración: 692.43 segundos
+Puntos finales: 94
+Salud final: 96
+Nivel de alcohol final: 22
+
+Simulación #32
+Fecha y hora: 2024-11-03 17:29:33
+Duración: 515.65 segundos
+Puntos finales: 93
+Salud final: 85
+Nivel de alcohol final: 10
+
+Simulación #4
+Fecha y hora: 2024-11-03 17:21:47
+Duración: 49.53 segundos
+Puntos finales: 92
+Salud final: 100
+Nivel de alcohol final: 5
+
+Simulación #46
+Fecha y hora: 2024-11-03 17:32:53
+Duración: 716.28 segundos
+Puntos finales: 88
+Salud final: 97
+Nivel de alcohol final: 9
+
+Simulación #40
+Fecha y hora: 2024-11-03 17:32:37
+Duración: 700.41 segundos
+Puntos finales: 86
+Salud final: 95
+Nivel de alcohol final: 16
+
+Simulación #5
+Fecha y hora: 2024-11-03 17:21:53
+Duración: 55.94 segundos
+Puntos finales: 85
+Salud final: 100
+Nivel de alcohol final: 2
+
+Simulación #11
+Fecha y hora: 2024-11-03 17:22:27
+Duración: 89.74 segundos
+Puntos finales: 79
+Salud final: 100
+Nivel de alcohol final: 5
+
+Simulación #42
+Fecha y hora: 2024-11-03 17:32:47
+Duración: 709.67 segundos
+Puntos finales: 76
+Salud final: 100
+Nivel de alcohol final: 6
+
+Simulación #15
+Fecha y hora: 2024-11-03 17:23:49
+Duración: 172.16 segundos
+Puntos finales: 75
+Salud final: 100
+Nivel de alcohol final: 0
+
+Simulación #47
+Fecha y hora: 2024-11-03 17:32:56
+Duración: 718.68 segundos
+Puntos finales: 74
+Salud final: 93
+Nivel de alcohol final: 11
+
+Simulación #31
+Fecha y hora: 2024-11-03 17:29:29
+Duración: 511.76 segundos
+Puntos finales: 71
+Salud final: 85
+Nivel de alcohol final: 12
+
+Simulación #44
+Fecha y hora: 2024-11-03 17:32:51
+Duración: 713.76 segundos
+Puntos finales: 71
+Salud final: 100
+Nivel de alcohol final: 2
+
+Simulación #25
+Fecha y hora: 2024-11-03 17:25:17
+Duración: 260.15 segundos
+Puntos finales: 69
+Salud final: 97
+Nivel de alcohol final: 6
+
+Simulación #33
+Fecha y hora: 2024-11-03 17:29:42
+Duración: 524.88 segundos
+Puntos finales: 68
+Salud final: 74
+Nivel de alcohol final: 20
+
+Simulación #6
+Fecha y hora: 2024-11-03 17:21:57
+Duración: 59.49 segundos
+Puntos finales: 66
+Salud final: 87
+Nivel de alcohol final: 12
+
+Simulación #9
+Fecha y hora: 2024-11-03 17:22:13
+Duración: 75.88 segundos
+Puntos finales: 61
+Salud final: 84
+Nivel de alcohol final: 12
+
+Simulación #10
+Fecha y hora: 2024-11-03 17:22:19
+Duración: 81.66 segundos
+Puntos finales: 61
+Salud final: 68
+Nivel de alcohol final: 20
+
+Simulación #8
+Fecha y hora: 2024-11-03 17:22:05
+Duración: 67.79 segundos
+Puntos finales: 59
+Salud final: 68
+Nivel de alcohol final: 19
+
+Simulación #16
+Fecha y hora: 2024-11-03 17:23:54
+Duración: 177.14 segundos
+Puntos finales: 58
+Salud final: 59
+Nivel de alcohol final: 22
+
+Simulación #18
+Fecha y hora: 2024-11-03 17:24:53
+Duración: 235.55 segundos
+Puntos finales: 53
+Salud final: 73
+Nivel de alcohol final: 13
+
+Simulación #24
+Fecha y hora: 2024-11-03 17:25:13
+Duración: 256.2 segundos
+Puntos finales: 53
+Salud final: 80
+Nivel de alcohol final: 10
+
+Simulación #20
+Fecha y hora: 2024-11-03 17:25:01
+Duración: 243.47 segundos
+Puntos finales: 52
+Salud final: 92
+Nivel de alcohol final: 4
 

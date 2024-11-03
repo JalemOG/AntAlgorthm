@@ -32,6 +32,8 @@ class AntSimulationApp:
         self.initial_maze_state = None
         self.simulation_results = []
         self.simulation_number = 1
+        self.stats_file = "ant_stats.txt"
+        self.simulation_count = 0
 
         # Cargar las imágenes
         self.ant_image = tk.PhotoImage(file="images/ant.png").subsample(24)
@@ -533,19 +535,23 @@ class AntSimulationApp:
             print(f"Error al actualizar el grid de simulación: {e}")
 
     def update_stats(self):
-        if not hasattr(self, 'ant') or not self.ant:
+        if self.ant is None:
             print("La hormiga no está inicializada")
             return
 
         try:
             status = self.ant.get_status()
-            self.health_var.set(f"Salud: {status['health']}")
-            self.points_var.set(f"Puntos: {status['points']}")
-            self.alcohol_var.set(f"Alcohol: {status['alcohol_level']}")
+            self.health_var.set(f"Salud: {int(status['health'])}")
+            self.points_var.set(f"Puntos: {int(status['points'])}")
+            self.alcohol_var.set(f"Alcohol: {int(status['alcohol_level'])}")
         except Exception as e:
             print(f"Error al actualizar las estadísticas: {e}")
 
     def run_simulation_step(self):
+        if self.ant is None:
+            print("La hormiga no está inicializada")
+            return
+
         if self.ant.is_alive() and not self.simulation_paused:
             print(f"Posición de la hormiga antes de moverse: {self.ant.position}")
             moved = self.ant.move()
@@ -558,7 +564,7 @@ class AntSimulationApp:
             if item != " ":
                 if item == "G":
                     self.ant.interact_with_item(item)
-                    self.save_simulation_results()  # Guardar resultados al alcanzar la meta
+                    self.save_simulation_results()
                     messagebox.showinfo(
                         "¡Meta alcanzada!",
                         f"La hormiga ha llegado a la meta con {self.ant.points} puntos.\nReiniciando simulación..."
@@ -579,7 +585,7 @@ class AntSimulationApp:
         elif self.ant.is_alive() and self.simulation_paused:
             self.simulation_window.after(100, self.run_simulation_step)
         else:
-            self.save_simulation_results()  # Guardar resultados si la hormiga muere
+            self.save_simulation_results()
             messagebox.showinfo(
                 "Fin de la Simulación",
                 "La hormiga ha muerto.\nSimulación finalizada",
@@ -597,10 +603,10 @@ class AntSimulationApp:
 
             result = {
                 'simulation_number': self.simulation_number,
-                'duration': simulation_duration,
-                'points': self.ant.points,
-                'final_health': self.ant.health,
-                'alcohol_level': self.ant.alcohol_level,
+                'duration': round(simulation_duration, 2),
+                'points': int(self.ant.points),
+                'final_health': int(self.ant.health),
+                'alcohol_level': int(self.ant.alcohol_level),
                 'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             }
             
@@ -624,7 +630,7 @@ class AntSimulationApp:
                         elif "Duración:" in line:
                             current_sim['duration'] = float(line.split(': ')[1].split()[0])
                         elif "Puntos finales:" in line:
-                            current_sim['points'] = int(line.split(': ')[1])
+                            current_sim['points'] = float(line.split(': ')[1])
                         elif "Salud final:" in line:
                             current_sim['final_health'] = float(line.split(': ')[1])
                         elif "Nivel de alcohol final:" in line:
@@ -641,12 +647,12 @@ class AntSimulationApp:
             # Escribir todos los resultados ordenados
             with open(scores_file, 'w', encoding='utf-8') as f:
                 for res in sorted_results:
-                    f.write(f"Simulación #{res['simulation_number']}\n")
+                    f.write(f"Simulación #{int(res['simulation_number'])}\n")
                     f.write(f"Fecha y hora: {res['timestamp']}\n")
-                    f.write(f"Duración: {res['duration']:.2f} segundos\n")
-                    f.write(f"Puntos finales: {res['points']}\n")
-                    f.write(f"Salud final: {res['final_health']}\n")
-                    f.write(f"Nivel de alcohol final: {res['alcohol_level']}\n\n")
+                    f.write(f"Duración: {round(float(res['duration']), 2)} segundos\n")
+                    f.write(f"Puntos finales: {int(float(res['points']))}\n")
+                    f.write(f"Salud final: {int(float(res['final_health']))}\n")
+                    f.write(f"Nivel de alcohol final: {int(float(res['alcohol_level']))}\n\n")
             
             print(f"Resultados guardados en: {scores_file}")
             
@@ -655,7 +661,7 @@ class AntSimulationApp:
         except Exception as e:
             print(f"Error al guardar los resultados: {e}")
             messagebox.showerror("Error", f"No se pudieron guardar los resultados: {e}")
-            
+
     def save_sorted_results(self):
         """Ordena y guarda todos los resultados de las simulaciones"""
         # Ordenar resultados por puntos usando natsort
