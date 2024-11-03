@@ -11,7 +11,7 @@ class AntSimulationApp:
         self.root.title("Simulación de Hormiga")
         self.root.geometry("600x850")
         self.root.resizable(False, False)
-        
+
         # Configuración de estilo general
         self.configure_styles()
         
@@ -28,6 +28,7 @@ class AntSimulationApp:
         self.base_speed = 500 
         self.time_multiplier = 1
         self.last_update_time = 0
+        self.initial_maze_state = None
 
         # Cargar las imágenes
         self.ant_image = tk.PhotoImage(file="images/ant.png").subsample(24)
@@ -35,6 +36,7 @@ class AntSimulationApp:
         self.wine_image = tk.PhotoImage(file="images/wine.png").subsample(10)
         self.poison_image = tk.PhotoImage(file="images/poison.png").subsample(10)
         self.rock_image = tk.PhotoImage(file="images/rock.png").subsample(12)
+        self.goal_image = tk.PhotoImage(file="images/goal.png").subsample(12)
 
         # Crear elementos de la interfaz
         self.create_widgets()
@@ -223,7 +225,8 @@ class AntSimulationApp:
             "SUGAR",
             "WINE",
             "POISON",
-            "ROCK"
+            "ROCK",
+            "GOAL"
         )
         item_menu.configure(
             font=self.label_font,
@@ -336,8 +339,11 @@ class AntSimulationApp:
         item_type = self.selected_item.get()
 
         if self.maze.matrix[x][y] == " ":
-            self.maze.add_item(item_type, (x, y))
-            self.update_maze_grid()
+            try:
+                self.maze.add_item(item_type, (x, y))
+                self.update_maze_grid()
+            except ValueError as e:
+                messagebox.showerror("Error", str(e))
         else:
             messagebox.showerror("Error", "La celda ya tiene un ítem.")
 
@@ -361,7 +367,38 @@ class AntSimulationApp:
                     self.maze_canvas.create_image(x, y, image=self.poison_image, tags=(f"image_{i}_{j}"))
                 elif item == "R":
                     self.maze_canvas.create_image(x, y, image=self.rock_image, tags=(f"image_{i}_{j}"))
-    
+                elif item == "G":
+                    self.maze_canvas.create_image(x, y, image=self.goal_image, tags=(f"image_{i}_{j}"))
+
+    def reset_simulation(self):
+        """Reinicia la simulación manteniendo el laberinto actual"""
+        # Reiniciar la hormiga a su posición inicial
+        self.ant = Ant(start_position=self.ant_start_position, maze=self.maze)
+        
+        # Reiniciar el tiempo
+        self.start_time = time.time()
+        self.last_update_time = self.start_time
+        self.elapsed_simulation_time = 0
+        
+        # Reiniciar las estadísticas
+        self.health_var.set("Salud: 100")
+        self.points_var.set("Puntos: 0")
+        self.alcohol_var.set("Alcohol: 0")
+        self.time_var.set("Tiempo: 00:00")
+        
+        # Restaurar los ítems del laberinto original
+        self.restore_maze_items()
+        
+        # Actualizar la visualización
+        self.update_simulation_grid()
+
+
+    def restore_maze_items(self):
+        """Restaura los ítems del laberinto a su estado original"""
+        if self.initial_maze_state:
+            self.maze.matrix = [row[:] for row in self.initial_maze_state]
+
+
     def start_simulation(self):
         if not self.maze:
             messagebox.showerror("Error", "Primero crea el laberinto antes de iniciar la simulación.")
@@ -378,6 +415,8 @@ class AntSimulationApp:
             if 0 <= start_x < self.maze.size and 0 <= start_y < self.maze.size:
                 self.ant_start_position = (start_x, start_y)
                 self.ant = Ant(start_position=self.ant_start_position, maze=self.maze)
+                self.initial_maze_state = [row[:] for row in self.maze.matrix]
+
             else:
                 messagebox.showerror("Error", "Posición fuera del rango del laberinto.")
                 return
@@ -472,6 +511,8 @@ class AntSimulationApp:
                     self.simulation_canvas.create_image(x, y, image=self.poison_image, tags=f"item_{i}_{j}")
                 elif item == "R":
                     self.simulation_canvas.create_image(x, y, image=self.rock_image, tags=f"item_{i}_{j}")
+                elif item == "G":
+                    self.simulation_canvas.create_image(x, y, image=self.goal_image, tags=f"item_{i}_{j}")
 
         ant_x, ant_y = self.ant.position
         x = ant_y * cell_size + cell_size // 2
@@ -485,9 +526,18 @@ class AntSimulationApp:
 
             ant_x, ant_y = self.ant.position
             item = self.maze.matrix[ant_x][ant_y]
+
             if item != " ":
-                self.ant.interact_with_item(item)
-                self.maze.matrix[ant_x][ant_y] = " "
+                if item == "G":
+                    self.ant.interact_with_item(item)
+                    messagebox.showinfo(
+                        "¡Meta alcanzada!",
+                        f"La hormiga ha llegado a la meta con {self.ant.points} puntos.\nReiniciando simulación..."
+                    )
+                    self.reset_simulation()
+                else:
+                    self.ant.interact_with_item(item)
+                    self.maze.matrix[ant_x][ant_y] = " "
 
             self.update_simulation_grid()
             self.update_stats()

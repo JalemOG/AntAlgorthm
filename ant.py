@@ -2,6 +2,7 @@ from items.sugar import Sugar
 from items.wine import Wine
 from items.poison import Poison
 from items.rock import Rock
+from items.goal import Goal
 
 class Ant:
     def __init__(self, start_position, maze):
@@ -53,6 +54,8 @@ class Ant:
                 item = Poison()
             elif item == 'R':
                 item = Rock()
+            elif item == 'G':
+                item = Goal()
 
         # Procesar el ítem según su tipo
         if isinstance(item, Sugar):
@@ -76,8 +79,12 @@ class Ant:
         elif isinstance(item, Rock):
             print("La hormiga no puede consumir rocas.")
 
+        elif isinstance(item, Goal):
+            item.interact(self)
+            print(f"¡La hormiga ha alcanzado la meta! Puntos totales: {self.points}")
+
         # Actualizar estado de salud
-        self.update_health(0)  # Solo para verificar límites
+        self.update_health(0)  # Solo para verificar límites            
 
     def update_health(self, change):
         """
