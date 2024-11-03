@@ -535,6 +535,8 @@ class AntSimulationApp:
                         f"La hormiga ha llegado a la meta con {self.ant.points} puntos.\nReiniciando simulación..."
                     )
                     self.reset_simulation()
+                    self.simulation_window.lift()  # Traer la ventana de simulación al frente
+                    self.simulation_window.focus_force() 
                 else:
                     self.ant.interact_with_item(item)
                     self.maze.matrix[ant_x][ant_y] = " "
