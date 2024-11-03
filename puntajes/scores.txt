@@ -1,0 +1,42 @@
+Simulación #1
+Fecha y hora: 2024-11-03 11:11:28
+Duración: 12.95 segundos
+Puntos finales: 130
+Salud final: 80.0
+Nivel de alcohol final: 15.0
+
+Simulación #2
+Fecha y hora: 2024-11-03 11:11:47
+Duración: 31.60 segundos
+Puntos finales: 130
+Salud final: 90.0
+Nivel de alcohol final: 15.0
+
+Simulación #4
+Fecha y hora: 2024-11-03 11:12:03
+Duración: 47.64 segundos
+Puntos finales: 130
+Salud final: 70
+Nivel de alcohol final: 15
+
+Simulación #3
+Fecha y hora: 2024-11-03 11:11:49
+Duración: 34.37 segundos
+Puntos finales: 110
+Salud final: 70.0
+Nivel de alcohol final: 15.0
+
+Simulación #1
+Fecha y hora: 2024-11-03 11:05:24
+Duración: 3.55 segundos
+Puntos finales: 50
+Salud final: 100.0
+Nivel de alcohol final: 0.0
+
+Simulación #2
+Fecha y hora: 2024-11-03 11:05:31
+Duración: 10.58 segundos
+Puntos finales: 50
+Salud final: 100.0
+Nivel de alcohol final: 0.0
+
