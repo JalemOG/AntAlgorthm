@@ -397,6 +397,9 @@ class AntSimulationApp:
         # Actualizar la visualización
         self.update_simulation_grid()
 
+        # Reiniciar el contador de simulaciones si es necesario
+        self.simulation_number += 1
+
     def restore_maze_items(self):
         """Restaura los ítems del laberinto a su estado original"""
         if self.initial_maze_state:
@@ -428,6 +431,17 @@ class AntSimulationApp:
             return
 
         self.simulation_window = Toplevel(self.root)
+        self.simulation_window.geometry("700x600")
+
+        screen_width = self.simulation_window.winfo_screenwidth()
+        screen_height = self.simulation_window.winfo_screenheight()
+
+        x = (screen_width - 700) // 2
+        y = (screen_height - 600) // 2
+
+        self.simulation_window.geometry(f"{700}x{600}+{x}+{y}")
+        self.simulation_window.update()
+
         self.simulation_window.title("Simulación en Progreso")
         self.simulation_active = True
         self.simulation_start_time = time.time()
@@ -552,45 +566,42 @@ class AntSimulationApp:
             print("La hormiga no está inicializada")
             return
 
-        if self.ant.is_alive() and not self.simulation_paused:
-            print(f"Posición de la hormiga antes de moverse: {self.ant.position}")
-            moved = self.ant.move()
-            print(f"Posición de la hormiga después de moverse: {self.ant.position}")
-            print(f"¿Se movió la hormiga? {moved}")
+        if not self.simulation_paused:
+            if self.ant.is_alive():
+                print(f"Posición de la hormiga antes de moverse: {self.ant.position}")
+                moved = self.ant.move()
+                print(f"Posición de la hormiga después de moverse: {self.ant.position}")
+                print(f"¿Se movió la hormiga? {moved}")
 
-            ant_x, ant_y = self.ant.position
-            item = self.maze.matrix[ant_x][ant_y]
+                ant_x, ant_y = self.ant.position
+                item = self.maze.matrix[ant_x][ant_y]
 
-            if item != " ":
-                if item == "G":
-                    self.ant.interact_with_item(item)
-                    self.save_simulation_results()
-                    messagebox.showinfo(
-                        "¡Meta alcanzada!",
-                        f"La hormiga ha llegado a la meta con {self.ant.points} puntos.\nReiniciando simulación..."
-                    )
-                    self.reset_simulation()
-                    self.simulation_window.lift()
-                    self.simulation_window.focus_force() 
-                else:
-                    self.ant.interact_with_item(item)
-                    self.maze.matrix[ant_x][ant_y] = " "
+                if item != " ":
+                    should_reset = self.ant.interact_with_item(item)
+                    if should_reset:
+                        self.handle_simulation_end("¡Meta alcanzada!" if item == 'G' else "¡Veneno consumido!")
+                    else:
+                        self.maze.matrix[ant_x][ant_y] = " "
 
-            self.update_simulation_grid()
-            self.update_stats()
-            self.update_timer()
-            
-            adjusted_delay = int(self.base_speed / self.simulation_speed)
-            self.simulation_window.after(adjusted_delay, self.run_simulation_step)
-        elif self.ant.is_alive() and self.simulation_paused:
-            self.simulation_window.after(100, self.run_simulation_step)
+                self.update_simulation_grid()
+                self.update_stats()
+                self.update_timer()
+
+                adjusted_delay = int(self.base_speed / self.simulation_speed)
+                self.simulation_window.after(adjusted_delay, self.run_simulation_step)
+            else:
+                self.handle_simulation_end("La hormiga ha muerto")
+
         else:
-            self.save_simulation_results()
-            messagebox.showinfo(
-                "Fin de la Simulación",
-                "La hormiga ha muerto.\nSimulación finalizada",
-                icon="info"
-            )
+            self.simulation_window.after(100, self.run_simulation_step)
+
+    def handle_simulation_end(self, message):
+        self.save_simulation_results()
+        messagebox.showinfo("Fin de la Simulación", f"{message}\nPuntos finales: {self.ant.points}\nReiniciando simulación...")
+        self.reset_simulation()
+        self.simulation_window.lift()
+        self.simulation_window.focus_force()
+        self.run_simulation_step()
 
     def save_simulation_results(self):
         """Guarda los resultados de la simulación actual en el archivo scores.txt"""

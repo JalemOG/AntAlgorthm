@@ -7,6 +7,7 @@ from items.rock import Rock
 from items.goal import Goal
 from ant_genome import AntGenome
 
+
 class Ant:
     def __init__(self, start_position, maze, genome=None):
         self.position = start_position
@@ -129,7 +130,16 @@ class Ant:
                 return next_direction
             current_index = next_index
         return None
-
+    
+    def is_walkable(self, position):
+        """
+        Verifica si una posición es caminable
+        """
+        x, y = position
+        if not self.is_valid_position(position):
+            return False
+        return self.matrix[x][y] in [' ', 'S', 'W', 'P', 'G']  # Incluir todos los elementos válidos
+    
     def move(self):
         if not self.is_alive():
             return False
@@ -276,18 +286,25 @@ class Ant:
             
         elif isinstance(item, Poison):
             risk_tolerance = self.genome.genes['risk_tolerance'][1]
+
             if random.random() > risk_tolerance:
                 self.health = 0
-                print("¡La hormiga ha consumido veneno y ha muerto!")
+                print("¡La hormiga ha consumido veneno!")
+                # Aquí tratamos el veneno como si fuera una meta alcanzada
+                return True  # Indicamos que se debe reiniciar la simulación
+
             else:
                 self.health -= 50
                 print("¡La hormiga ha resistido parte del veneno!")
-            
+                
         elif isinstance(item, Rock):
             print("La hormiga no puede consumir rocas.")
 
         elif isinstance(item, Goal):
             item.interact(self)
             print(f"¡La hormiga ha alcanzado la meta! Puntos totales: {self.points}")
+            return True
 
         self.update_health(0)
+        return False
+    
