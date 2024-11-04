@@ -5,12 +5,13 @@ from ant import Ant
 import time
 from natsort import natsorted
 import os
+import matplotlib.pyplot as plt
 
 class AntSimulationApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Simulación de Hormiga")
-        self.root.geometry("600x850")
+        self.root.geometry("600x950")
         self.root.resizable(False, False)
 
         # Configuración de estilo general
@@ -34,6 +35,7 @@ class AntSimulationApp:
         self.simulation_number = 1
         self.stats_file = "ant_stats.txt"
         self.simulation_count = 0
+        self.load_stats_from_file()
 
         # Cargar las imágenes
         self.ant_image = tk.PhotoImage(file="images/ant.png").subsample(24)
@@ -43,7 +45,9 @@ class AntSimulationApp:
         self.rock_image = tk.PhotoImage(file="images/rock.png").subsample(12)
         self.goal_image = tk.PhotoImage(file="images/goal.png").subsample(12)
 
+
         # Crear elementos de la interfaz
+        self.configure_styles()
         self.create_widgets()
 
     def create_stats_panel(self, simulation_frame):
@@ -284,6 +288,21 @@ class AntSimulationApp:
         )
         self.start_simulation_button.pack(pady=20)
 
+        self.show_graphs_button = tk.Button(
+            self.root,
+            text="Mostrar Gráficos",
+            command=self.plot_simulation_results,
+            font=self.button_font,
+            bg=self.button_color,
+            fg=self.fg_color,
+            activebackground=self.hover_color,
+            activeforeground=self.fg_color,
+            relief='flat',
+            padx=20,
+            pady=5
+        )
+        self.show_graphs_button.pack(pady=20)
+
     def create_maze(self):
         size_text = self.size_entry.get()
         if size_text.isdigit():
@@ -374,6 +393,71 @@ class AntSimulationApp:
                     self.maze_canvas.create_image(x, y, image=self.rock_image, tags=(f"image_{i}_{j}"))
                 elif item == "G":
                     self.maze_canvas.create_image(x, y, image=self.goal_image, tags=(f"image_{i}_{j}"))
+
+    def load_stats_from_file(self):
+
+        """Carga estadísticas desde el archivo de texto"""
+
+        try:
+            with open("puntajes/scores.txt", "r") as file:
+                lines = file.readlines()
+                current_simulation = {}
+
+                for line in lines:
+                    line = line.strip()
+
+                    if line.startswith("Simulación #"):
+                        if current_simulation:
+                            self.simulation_results.append(current_simulation)
+
+                        current_simulation = {}
+
+                    elif "Puntos finales:" in line:
+                        current_simulation['points'] = int(line.split(': ')[1])
+
+                    elif "Duración:" in line:
+                        current_simulation['duration'] = float(line.split(': ')[1].replace(' segundos', ''))
+
+                if current_simulation:  # Agregar la última simulación
+                    self.simulation_results.append(current_simulation)
+
+        except FileNotFoundError:
+            print("El archivo de estadísticas no existe. Se comenzará una nueva simulación.")
+
+
+    def plot_simulation_results(self):
+
+        """Genera gráficos a partir de los resultados de las simulaciones"""
+
+        points = [sim.get('points', 0) for sim in self.simulation_results]
+        durations = [sim.get('duration', 0) for sim in self.simulation_results]
+
+        # Crear gráficos
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+
+
+        # Gráfico de puntos
+
+        ax1.plot(range(1, len(points) + 1), points, 'b-', marker='o')
+        ax1.set_title('Puntos por Simulación')
+        ax1.set_xlabel('Número de Simulación')
+        ax1.set_ylabel('Puntos')
+        ax1.grid(True)
+
+
+        # Gráfico de duración
+
+        ax2.plot(range(1, len(durations) + 1), durations, 'r-', marker='o')
+        ax2.set_title('Duración por Simulación')
+        ax2.set_xlabel('Número de Simulación')
+        ax2.set_ylabel('Duración (segundos)')
+        ax2.grid(True)
+
+
+        plt.tight_layout()
+        plt.show()
+
 
     def reset_simulation(self):
         """Reinicia la simulación manteniendo el laberinto actual"""

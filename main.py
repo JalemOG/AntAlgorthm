@@ -9,7 +9,7 @@ if __name__ == "__main__":
     x = (screen_width - 600) // 2
     y = (screen_height - 850) // 2
 
-    root.geometry(f"{600}x{850}+{x}+{y}")
+    root.geometry(f"{600}x{950}+{x}+{y}")
     root.update()
 
     app = AntSimulationApp(root)
