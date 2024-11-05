@@ -43,9 +43,13 @@ class Maze:
         return 0 <= x < self.size and 0 <= y < self.size
 
     def is_walkable(self, position):
-        """Verifica si una posición es transitable (no hay roca)"""
+        """
+        Verifica si una posición es caminable
+        """
         x, y = position
-        return self.matrix[x][y] != "R"
+        if not self.is_valid_position(position):
+            return False
+        return self.matrix[x][y] in [' ', 'S', 'W', 'P', 'G']  # Incluir todos los elementos válidos
     
     def remove_goal(self):
         """Elimina la meta del laberinto si existe"""
