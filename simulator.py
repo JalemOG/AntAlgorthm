@@ -2,14 +2,16 @@ import tkinter as tk
 from tkinter import messagebox, Toplevel
 from maze import Maze
 from ant import Ant
-import random
 import time
+from natsort import natsorted
+import os
+import matplotlib.pyplot as plt
 
 class AntSimulationApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Simulación de Hormiga")
-        self.root.geometry("600x850")
+        self.root.geometry("600x950")
         self.root.resizable(False, False)
 
         # Configuración de estilo general
@@ -29,6 +31,11 @@ class AntSimulationApp:
         self.time_multiplier = 1
         self.last_update_time = 0
         self.initial_maze_state = None
+        self.simulation_results = []
+        self.simulation_number = 1
+        self.stats_file = "ant_stats.txt"
+        self.simulation_count = 0
+        self.load_stats_from_file()
 
         # Cargar las imágenes
         self.ant_image = tk.PhotoImage(file="images/ant.png").subsample(24)
@@ -38,7 +45,9 @@ class AntSimulationApp:
         self.rock_image = tk.PhotoImage(file="images/rock.png").subsample(12)
         self.goal_image = tk.PhotoImage(file="images/goal.png").subsample(12)
 
+
         # Crear elementos de la interfaz
+        self.configure_styles()
         self.create_widgets()
 
     def create_stats_panel(self, simulation_frame):
@@ -279,6 +288,21 @@ class AntSimulationApp:
         )
         self.start_simulation_button.pack(pady=20)
 
+        self.show_graphs_button = tk.Button(
+            self.root,
+            text="Mostrar Gráficos",
+            command=self.plot_simulation_results,
+            font=self.button_font,
+            bg=self.button_color,
+            fg=self.fg_color,
+            activebackground=self.hover_color,
+            activeforeground=self.fg_color,
+            relief='flat',
+            padx=20,
+            pady=5
+        )
+        self.show_graphs_button.pack(pady=20)
+
     def create_maze(self):
         size_text = self.size_entry.get()
         if size_text.isdigit():
@@ -370,6 +394,71 @@ class AntSimulationApp:
                 elif item == "G":
                     self.maze_canvas.create_image(x, y, image=self.goal_image, tags=(f"image_{i}_{j}"))
 
+    def load_stats_from_file(self):
+
+        """Carga estadísticas desde el archivo de texto"""
+
+        try:
+            with open("puntajes/scores.txt", "r") as file:
+                lines = file.readlines()
+                current_simulation = {}
+
+                for line in lines:
+                    line = line.strip()
+
+                    if line.startswith("Simulación #"):
+                        if current_simulation:
+                            self.simulation_results.append(current_simulation)
+
+                        current_simulation = {}
+
+                    elif "Puntos finales:" in line:
+                        current_simulation['points'] = int(line.split(': ')[1])
+
+                    elif "Duración:" in line:
+                        current_simulation['duration'] = float(line.split(': ')[1].replace(' segundos', ''))
+
+                if current_simulation:  # Agregar la última simulación
+                    self.simulation_results.append(current_simulation)
+
+        except FileNotFoundError:
+            print("El archivo de estadísticas no existe. Se comenzará una nueva simulación.")
+
+
+    def plot_simulation_results(self):
+
+        """Genera gráficos a partir de los resultados de las simulaciones"""
+
+        points = [sim.get('points', 0) for sim in self.simulation_results]
+        durations = [sim.get('duration', 0) for sim in self.simulation_results]
+
+        # Crear gráficos
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+
+
+        # Gráfico de puntos
+
+        ax1.plot(range(1, len(points) + 1), points, 'b-', marker='o')
+        ax1.set_title('Puntos por Simulación')
+        ax1.set_xlabel('Número de Simulación')
+        ax1.set_ylabel('Puntos')
+        ax1.grid(True)
+
+
+        # Gráfico de duración
+
+        ax2.plot(range(1, len(durations) + 1), durations, 'r-', marker='o')
+        ax2.set_title('Duración por Simulación')
+        ax2.set_xlabel('Número de Simulación')
+        ax2.set_ylabel('Duración (segundos)')
+        ax2.grid(True)
+
+
+        plt.tight_layout()
+        plt.show()
+
+
     def reset_simulation(self):
         """Reinicia la simulación manteniendo el laberinto actual"""
         # Reiniciar la hormiga a su posición inicial
@@ -392,12 +481,13 @@ class AntSimulationApp:
         # Actualizar la visualización
         self.update_simulation_grid()
 
+        # Reiniciar el contador de simulaciones si es necesario
+        self.simulation_number += 1
 
     def restore_maze_items(self):
         """Restaura los ítems del laberinto a su estado original"""
         if self.initial_maze_state:
             self.maze.matrix = [row[:] for row in self.initial_maze_state]
-
 
     def start_simulation(self):
         if not self.maze:
@@ -425,8 +515,20 @@ class AntSimulationApp:
             return
 
         self.simulation_window = Toplevel(self.root)
+        self.simulation_window.geometry("700x600")
+
+        screen_width = self.simulation_window.winfo_screenwidth()
+        screen_height = self.simulation_window.winfo_screenheight()
+
+        x = (screen_width - 700) // 2
+        y = (screen_height - 600) // 2
+
+        self.simulation_window.geometry(f"{700}x{600}+{x}+{y}")
+        self.simulation_window.update()
+
         self.simulation_window.title("Simulación en Progreso")
         self.simulation_active = True
+        self.simulation_start_time = time.time()
 
         # Configurar estilo de la ventana de simulación
         self.simulation_window.configure(bg=self.bg_color)
@@ -491,68 +593,191 @@ class AntSimulationApp:
         self.run_simulation_step()
 
     def update_simulation_grid(self):
-        cell_size = 40
-        
-        self.simulation_canvas.delete("ant")
-        
-        for i in range(self.maze.size):
-            for j in range(self.maze.size):
-                item = self.maze.matrix[i][j]
-                x = j * cell_size + cell_size // 2
-                y = i * cell_size + cell_size // 2
-                
-                self.simulation_canvas.delete(f"item_{i}_{j}")
-                
-                if item == "S":
-                    self.simulation_canvas.create_image(x, y, image=self.sugar_image, tags=f"item_{i}_{j}")
-                elif item == "W":
-                    self.simulation_canvas.create_image(x, y, image=self.wine_image, tags=f"item_{i}_{j}")
-                elif item == "P":
-                    self.simulation_canvas.create_image(x, y, image=self.poison_image, tags=f"item_{i}_{j}")
-                elif item == "R":
-                    self.simulation_canvas.create_image(x, y, image=self.rock_image, tags=f"item_{i}_{j}")
-                elif item == "G":
-                    self.simulation_canvas.create_image(x, y, image=self.goal_image, tags=f"item_{i}_{j}")
+        if self.simulation_canvas is None or not self.simulation_canvas.winfo_exists():
+            print("El canvas de simulación no existe o ha sido destruido")
+            return
 
-        ant_x, ant_y = self.ant.position
-        x = ant_y * cell_size + cell_size // 2
-        y = ant_x * cell_size + cell_size // 2
-        self.simulation_canvas.create_image(x, y, image=self.ant_image, tags="ant")
+        try:
+            self.simulation_canvas.delete("all")  # Limpiar todo el canvas
+            cell_size = 40
+            
+            for i in range(self.maze.size):
+                for j in range(self.maze.size):
+                    x1, y1 = j * cell_size, i * cell_size
+                    x2, y2 = x1 + cell_size, y1 + cell_size
+                    self.simulation_canvas.create_rectangle(x1, y1, x2, y2, fill=self.grid_bg, outline=self.grid_lines)
+                    
+                    item = self.maze.matrix[i][j]
+                    x, y = j * cell_size + cell_size // 2, i * cell_size + cell_size // 2
+                    
+                    if item == "S":
+                        self.simulation_canvas.create_image(x, y, image=self.sugar_image)
+                    elif item == "W":
+                        self.simulation_canvas.create_image(x, y, image=self.wine_image)
+                    elif item == "P":
+                        self.simulation_canvas.create_image(x, y, image=self.poison_image)
+                    elif item == "R":
+                        self.simulation_canvas.create_image(x, y, image=self.rock_image)
+                    elif item == "G":
+                        self.simulation_canvas.create_image(x, y, image=self.goal_image)
+
+            # Dibujar la hormiga
+            if self.ant:
+                ant_x, ant_y = self.ant.position
+                x = ant_y * cell_size + cell_size // 2
+                y = ant_x * cell_size + cell_size // 2
+                self.simulation_canvas.create_image(x, y, image=self.ant_image, tags="ant")
+                print(f"Dibujando hormiga en posición: ({x}, {y})")
+
+        except tk.TclError as e:
+            print(f"Error al actualizar el grid de simulación: {e}")
+
+    def update_stats(self):
+        if self.ant is None:
+            print("La hormiga no está inicializada")
+            return
+
+        try:
+            status = self.ant.get_status()
+            self.health_var.set(f"Salud: {int(status['health'])}")
+            self.points_var.set(f"Puntos: {int(status['points'])}")
+            self.alcohol_var.set(f"Alcohol: {int(status['alcohol_level'])}")
+        except Exception as e:
+            print(f"Error al actualizar las estadísticas: {e}")
 
     def run_simulation_step(self):
-        if self.ant.is_alive() and not self.simulation_paused:
-            direction = random.choice(["UP", "DOWN", "LEFT", "RIGHT"])
-            self.ant.move(direction)
+        if self.ant is None:
+            print("La hormiga no está inicializada")
+            return
 
-            ant_x, ant_y = self.ant.position
-            item = self.maze.matrix[ant_x][ant_y]
+        if not self.simulation_paused:
+            if self.ant.is_alive():
+                print(f"Posición de la hormiga antes de moverse: {self.ant.position}")
+                moved = self.ant.move()
+                print(f"Posición de la hormiga después de moverse: {self.ant.position}")
+                print(f"¿Se movió la hormiga? {moved}")
 
-            if item != " ":
-                if item == "G":
-                    self.ant.interact_with_item(item)
-                    messagebox.showinfo(
-                        "¡Meta alcanzada!",
-                        f"La hormiga ha llegado a la meta con {self.ant.points} puntos.\nReiniciando simulación..."
-                    )
-                    self.reset_simulation()
-                    self.simulation_window.lift()  # Traer la ventana de simulación al frente
-                    self.simulation_window.focus_force() 
-                else:
-                    self.ant.interact_with_item(item)
-                    self.maze.matrix[ant_x][ant_y] = " "
+                ant_x, ant_y = self.ant.position
+                item = self.maze.matrix[ant_x][ant_y]
 
-            self.update_simulation_grid()
-            self.update_stats()
-            self.update_timer()
-            
-            # Calcular el delay ajustado según la velocidad
-            adjusted_delay = int(self.base_speed / self.simulation_speed)
-            self.simulation_window.after(adjusted_delay, self.run_simulation_step)
-        elif self.ant.is_alive() and self.simulation_paused:
-            self.simulation_window.after(100, self.run_simulation_step)
+                if item != " ":
+                    should_reset = self.ant.interact_with_item(item)
+                    if should_reset:
+                        self.ant.position = self.ant_start_position
+                        self.handle_simulation_end("¡Meta alcanzada!" if item == 'G' else "¡Veneno consumido!")
+                    else:
+                        self.maze.matrix[ant_x][ant_y] = " "
+
+                self.update_simulation_grid()
+                self.update_stats()
+                self.update_timer()
+
+                adjusted_delay = int(self.base_speed / self.simulation_speed)
+                self.simulation_window.after(adjusted_delay, self.run_simulation_step)
+            else:
+                self.handle_simulation_end("La hormiga ha muerto")
+
         else:
-            messagebox.showinfo(
-                "Fin de la Simulación",
-                "La hormiga ha muerto.\nSimulación finalizada",
-                icon="info"
-            )
+            self.simulation_window.after(100, self.run_simulation_step)
+
+    def handle_simulation_end(self, message):
+        self.save_simulation_results()
+        
+        messagebox.showinfo("Fin de la Simulación", f"{message}\nPuntos finales: {self.ant.points}\nReiniciando simulación...")
+        self.reset_simulation()
+        self.simulation_window.lift()
+        self.simulation_window.focus_force()
+        self.run_simulation_step()
+
+    def save_simulation_results(self):
+        """Guarda los resultados de la simulación actual en el archivo scores.txt"""
+        try:
+            # Asegurar que la carpeta 'puntajes' existe
+            os.makedirs('puntajes', exist_ok=True)  
+
+            end_time = time.time()
+            simulation_duration = end_time - self.simulation_start_time
+
+            result = {
+                'simulation_number': self.simulation_number,
+                'duration': round(simulation_duration, 2),
+                'points': int(self.ant.points),
+                'final_health': int(self.ant.health),
+                'alcohol_level': int(self.ant.alcohol_level),
+                'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+            }
+            
+            # Ruta del archivo scores.txt
+            scores_file = os.path.join('puntajes', 'scores.txt')
+            
+            # Leer resultados existentes
+            existing_results = []
+            if os.path.exists(scores_file):
+                with open(scores_file, 'r', encoding='utf-8') as f:
+                    current_sim = {}
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("Simulación #"):
+                            if current_sim:
+                                existing_results.append(current_sim)
+                                current_sim = {}
+                            current_sim['simulation_number'] = int(line.split('#')[1])
+                        elif "Fecha y hora:" in line:
+                            current_sim['timestamp'] = line.split(': ', 1)[1]
+                        elif "Duración:" in line:
+                            current_sim['duration'] = float(line.split(': ')[1].split()[0])
+                        elif "Puntos finales:" in line:
+                            current_sim['points'] = float(line.split(': ')[1])
+                        elif "Salud final:" in line:
+                            current_sim['final_health'] = float(line.split(': ')[1])
+                        elif "Nivel de alcohol final:" in line:
+                            current_sim['alcohol_level'] = float(line.split(': ')[1])
+                    if current_sim:
+                        existing_results.append(current_sim)
+            
+            # Añadir el nuevo resultado
+            existing_results.append(result)
+            
+            # Ordenar resultados
+            sorted_results = sorted(existing_results, key=lambda x: (-x['points'], x['duration']))
+            
+            # Escribir todos los resultados ordenados
+            with open(scores_file, 'w', encoding='utf-8') as f:
+                for res in sorted_results:
+                    f.write(f"Simulación #{int(res['simulation_number'])}\n")
+                    f.write(f"Fecha y hora: {res['timestamp']}\n")
+                    f.write(f"Duración: {round(float(res['duration']), 2)} segundos\n")
+                    f.write(f"Puntos finales: {int(float(res['points']))}\n")
+                    f.write(f"Salud final: {int(float(res['final_health']))}\n")
+                    f.write(f"Nivel de alcohol final: {int(float(res['alcohol_level']))}\n\n")
+            
+            print(f"Resultados guardados en: {scores_file}")
+            
+            self.simulation_number += 1
+            
+        except Exception as e:
+            print(f"Error al guardar los resultados: {e}")
+            messagebox.showerror("Error", f"No se pudieron guardar los resultados: {e}")
+
+    def save_sorted_results(self):
+        """Ordena y guarda todos los resultados de las simulaciones"""
+        # Ordenar resultados por puntos usando natsort
+        sorted_results = natsorted(
+            self.simulation_results,
+            key=lambda x: (-x['points'], x['duration']),
+            reverse=True
+        )
+        
+        # Guardar resultados ordenados
+        with open('simulation_logs/all_simulations_sorted.txt', 'w') as f:
+            f.write("RESULTADOS DE TODAS LAS SIMULACIONES (Ordenados por puntos)\n")
+            f.write("=" * 60 + "\n\n")
+            
+            for result in sorted_results:
+                f.write(f"Simulación #{result['simulation_number']}\n")
+                f.write(f"Tiempo: {result['timestamp']}\n")
+                f.write(f"Duración: {result['duration']:.2f} segundos\n")
+                f.write(f"Puntos finales: {result['points']}\n")
+                f.write(f"Salud final: {result['final_health']}\n")
+                f.write(f"Nivel de alcohol final: {result['alcohol_level']}\n")
+                f.write("-" * 40 + "\n\n")
