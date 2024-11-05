@@ -663,6 +663,7 @@ class AntSimulationApp:
                 if item != " ":
                     should_reset = self.ant.interact_with_item(item)
                     if should_reset:
+                        self.ant.position = self.ant_start_position
                         self.handle_simulation_end("¡Meta alcanzada!" if item == 'G' else "¡Veneno consumido!")
                     else:
                         self.maze.matrix[ant_x][ant_y] = " "
@@ -681,6 +682,7 @@ class AntSimulationApp:
 
     def handle_simulation_end(self, message):
         self.save_simulation_results()
+        
         messagebox.showinfo("Fin de la Simulación", f"{message}\nPuntos finales: {self.ant.points}\nReiniciando simulación...")
         self.reset_simulation()
         self.simulation_window.lift()
